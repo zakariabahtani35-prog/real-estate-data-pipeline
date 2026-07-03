@@ -187,7 +187,7 @@ parking_mode AS (
 surface_avg AS (
     SELECT
         LOWER(TRIM(property_type)) AS property_type,
-        AVG(surface_m2) AS avg_surface_by_type
+        ROUND(AVG(surface_m2), 0)::INTEGER AS avg_surface_by_type
     FROM bronze
     WHERE surface_m2 IS NOT NULL
       AND surface_m2 != 9999
@@ -252,10 +252,10 @@ stats AS (
             THEN TRY_CAST(TRIM(REPLACE(price::VARCHAR, ' EUR', '')) AS FLOAT)
             END
         ) AS avg_price,
-        AVG(
+        ROUND(AVG(
             CASE WHEN surface_m2 != 9999 AND surface_m2 >= 10
             THEN surface_m2 END
-        ) AS avg_surface,
+        ), 0)::INTEGER AS avg_surface,
         MEDIAN(num_rooms)     AS median_rooms,
         MEDIAN(num_bathrooms) AS median_bathrooms,
         MEDIAN(year_built)    AS median_year_built,
@@ -338,8 +338,8 @@ cleaned AS (
                      AND (b.surface_m2 < 80 OR b.surface_m2 > 500) THEN NULL
                 ELSE b.surface_m2
             END,
-            sa.avg_surface_by_type,
-            s.avg_surface
+            ROUND(sa.avg_surface_by_type, 0)::INTEGER,
+            ROUND(s.avg_surface, 0)::INTEGER
         ) AS surface_m2,
 
         -- ✅ Num_rooms
@@ -359,8 +359,8 @@ cleaned AS (
                      AND b.num_rooms > 8    THEN NULL
                 ELSE b.num_rooms
             END,
-            rm.median_rooms_by_type,
-            s.median_rooms
+            ROUND(rm.median_rooms_by_type, 0)::INTEGER,
+            ROUND(s.median_rooms, 0)::INTEGER
         ) AS num_rooms,
 
         COALESCE(b.num_bathrooms, s.median_bathrooms) AS num_bathrooms,
