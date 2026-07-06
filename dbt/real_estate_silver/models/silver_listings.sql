@@ -270,7 +270,7 @@ cleaned AS (
     SELECT
         b.listing_id,
 
-        -- ✅ Type de bien
+        --  Type de bien
         CASE
             WHEN LOWER(TRIM(b.property_type)) IN ('apt', 'apartment') THEN 'apartment'
             WHEN LOWER(TRIM(b.property_type)) IN ('villa ', 'villa')  THEN 'villa'
@@ -281,7 +281,7 @@ cleaned AS (
             ELSE LOWER(TRIM(b.property_type))
         END AS property_type,
 
-        -- ✅ Pays
+        --  Pays
         COALESCE(
             NULLIF(TRIM(b.country), ''),
             CASE
@@ -313,14 +313,14 @@ cleaned AS (
 
         TRIM(b.city) AS city,
 
-        -- ✅ Quartier
+        --  Quartier
         COALESCE(
             NULLIF(LOWER(TRIM(b.neighborhood)), ''),
             n.neighborhood_mode,
             'unknown'
         ) AS neighborhood,
 
-        -- ✅ Surface
+        --  Surface
         COALESCE(
             CASE
                 WHEN b.surface_m2 = 9999 THEN NULL
@@ -342,7 +342,7 @@ cleaned AS (
             ROUND(s.avg_surface, 0)::INTEGER
         ) AS surface_m2,
 
-        -- ✅ Num_rooms
+        --  Num_rooms
         COALESCE(
             CASE
                 WHEN LOWER(TRIM(b.property_type)) = 'studio'
@@ -365,7 +365,7 @@ cleaned AS (
 
         COALESCE(b.num_bathrooms, s.median_bathrooms) AS num_bathrooms,
 
-        -- ✅ Floor → médiane par property_type
+        --  Floor → médiane par property_type
         COALESCE(
             b.floor,
             fm.median_floor_by_type,
@@ -374,7 +374,7 @@ cleaned AS (
 
         COALESCE(b.year_built, s.median_year_built) AS year_built,
 
-        -- ✅ Prix
+        --  Prix
         COALESCE(
             CASE
                 WHEN TRY_CAST(TRIM(REPLACE(b.price::VARCHAR, ' EUR', '')) AS FLOAT) < 1000
@@ -384,7 +384,7 @@ cleaned AS (
             s.avg_price
         ) AS price,
 
-        -- ✅ Date → médiane comme fallback
+        --  Date → médiane comme fallback
         COALESCE(
             TRY_TO_DATE(b.listing_date, 'YYYY-MM-DD'),
             TRY_TO_DATE(b.listing_date, 'DD/MM/YYYY'),
@@ -393,7 +393,7 @@ cleaned AS (
             '2022-01-01'::DATE
         ) AS listing_date,
 
-        -- ✅ Condition
+        --  Condition
         COALESCE(
             NULLIF(INITCAP(TRIM(b.condition)), ''),
             CASE UPPER(TRIM(b.energy_rating))
@@ -408,14 +408,14 @@ cleaned AS (
             END
         ) AS condition,
 
-        -- ✅ Chauffage
+        --  Chauffage
         COALESCE(
             NULLIF(LOWER(TRIM(b.heating_type)), ''),
             h.heating_mode,
             'unknown'
         ) AS heating_type,
 
-        -- ✅ Parking
+        --  Parking
         COALESCE(
             CASE
                 WHEN LOWER(TRIM(b.parking)) IN ('yes', '1') THEN 'YES'
@@ -426,7 +426,7 @@ cleaned AS (
             'NO'
         ) AS parking,
 
-        -- ✅ Classe énergie
+        --  Classe énergie
         COALESCE(
             CASE WHEN UPPER(TRIM(b.energy_rating)) IN ('A','B','C','D','E','F','G')
                  THEN UPPER(TRIM(b.energy_rating))
@@ -486,10 +486,10 @@ final AS (
         price, listing_date, condition, heating_type, parking,
         energy_rating,
 
-        -- 🆕 Âge du bien
+        --  Âge du bien
         YEAR(CURRENT_DATE()) - year_built AS property_age,
 
-        -- 🆕 Prix au m²
+        --  Prix au m²
         CASE
             WHEN surface_m2 > 0 AND price > 0
             THEN ROUND(price / surface_m2, 2)
