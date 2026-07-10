@@ -264,10 +264,10 @@ Organisation :
 ```
 main
 │
-├── branche_membre_1
-├── branche_membre_2
-├── branche_membre_3
-└── branche_membre_4
+├── feature/bronze-ingestion
+├── feature/dbt-silver
+├──feature/gold-powerbi
+└── feature/airflow-dag
 ```
 
 Règles :
