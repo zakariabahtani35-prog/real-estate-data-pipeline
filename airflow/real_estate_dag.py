@@ -1,49 +1,81 @@
+import os
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.models import Connection
+from airflow.utils.session import create_session
 
-# Fonction temporaire pour charger les donnees CSV brutes dans la couche Bronze de Snowflake
+DAG_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(DAG_DIR)
+DBT_PROJECT_DIR = os.path.join(BASE_DIR, 'dbt/real_estate_silver')
+
+def setup_snowflake_connection():
+    conn_id = 'snowflake_conn'
+    with create_session() as session:
+        if not session.query(Connection).filter(Connection.conn_id == conn_id).first():
+            new_conn = Connection(
+                conn_id=conn_id,
+                conn_type='snowflake',
+                login=os.environ.get('SNOWFLAKE_USER', 'zakariadev'),
+                password=os.environ.get('SNOWFLAKE_PASSWORD', 'MagnusCarlsen0109817er@r'),
+                schema=os.environ.get('SNOWFLAKE_SCHEMA', 'PUBLIC'),
+                extra={
+                    "account": os.environ.get('SNOWFLAKE_ACCOUNT', 'wy52468.eu-west-3.aws'),
+                    "warehouse": os.environ.get('SNOWFLAKE_WAREHOUSE', 'REAL_ESTATE_WH'),
+                    "database": os.environ.get('SNOWFLAKE_DATABASE', 'REAL_ESTATE_DB'),
+                    "role": os.environ.get('SNOWFLAKE_ROLE', 'ACCOUNTADMIN')
+                }
+            )
+            session.add(new_conn)
+            session.commit()
+            print(f"Connexion '{conn_id}' créée avec succès !")
+        else:
+            print(f"La connexion '{conn_id}' existe déjà.")
+
 def load_csv_to_bronze_func():
-    print("Demarrage de l'ETL : Lecture du fichier CSV brut...")
-    # En production, implémentez ici votre logique d'ingestion (ex: avec snowflake-connector-python)
-    print("Donnees brutes chargees avec succes dans REAL_ESTATE_DB.BRONZE.RAW_REAL_ESTATE.")
+    print("Démarrage de l'ETL : Lecture du fichier CSV brut...")
+    print("Données brutes chargées avec succès dans REAL_ESTATE_DB.BRONZE.RAW_REAL_ESTATE.")
 
-# Configuration des arguments par defaut pour l'ensemble du pipeline
 default_args = {
-    'owner': 'airflow',
+    'owner': 'youssef',
     'depends_on_past': False,
     'start_date': datetime(2026, 7, 1),
-    'retries': 2,                          # Reessayer 2 fois en cas d'echec
-    'retry_delay': timedelta(minutes=5),    # Attente de 5 minutes entre chaque tentative
+    'retries': 1,
+    'retry_delay': timedelta(minutes=3),
 }
 
-# Definition du DAG
 with DAG(
     dag_id='real_estate_pipeline',
     default_args=default_args,
-    description='Pipeline ETL pour les donnees immobilieres avec Airflow, dbt et Snowflake',
-    schedule_interval='@daily',            # S'execute automatiquement une fois par jour
-    catchup=False,                         # Desactive l'execution des dates passees (backfilling)
+    description='Pipeline ETL complet Medallion Architecture (Bronze -> Silver -> Gold)',
+    schedule_interval='@daily',
+    catchup=False
 ) as dag:
 
-    # Tache 1 : Ingerer les donnees CSV brutes dans la couche Bronze
+    setup_conn_task = PythonOperator(
+        task_id='setup_connection',
+        python_callable=setup_snowflake_connection,
+    )
+
     load_bronze_task = PythonOperator(
         task_id='load_csv_to_bronze',
         python_callable=load_csv_to_bronze_func,
     )
 
-    # Tache 2 : Executer les modeles de transformation dbt (Couches Silver & Gold)
-    dbt_run_task = BashOperator(
-        task_id='dbt_run_transformation',
-        bash_command='dbt run --project-dir dbt/real_estate_silver --profiles-dir dbt/real_estate_silver',
+    dbt_run_silver = BashOperator(
+        task_id='dbt_run_silver',
+        bash_command=f'dbt run --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROJECT_DIR} --select silver_listings',
     )
 
-    # Tache 3 : Executer les tests de validation de la qualite des donnees dbt
+    dbt_run_gold = BashOperator(
+        task_id='dbt_run_gold',
+        bash_command=f'dbt run --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROJECT_DIR} --select gold',
+    )
+
     dbt_test_task = BashOperator(
         task_id='dbt_test_validation',
-        bash_command='dbt test --project-dir dbt/real_estate_silver --profiles-dir dbt/real_estate_silver',
+        bash_command=f'dbt test --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROJECT_DIR}',
     )
 
-    # Definition de l'ordre d'execution du pipeline
-    load_bronze_task >> dbt_run_task >> dbt_test_task
+    setup_conn_task >> load_bronze_task >> dbt_run_silver >> dbt_run_gold >> dbt_test_task

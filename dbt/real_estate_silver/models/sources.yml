@@ -4,5 +4,6 @@ sources:
   - name: bronze
     database: REAL_ESTATE_DB
     schema: BRONZE
+
     tables:
       - name: RAW_REAL_ESTATE

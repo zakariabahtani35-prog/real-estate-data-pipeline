@@ -1,0 +1,20 @@
+real_estate_silver:
+  target: dev
+
+  outputs:
+    dev:
+      type: snowflake
+
+      account: LOGWHRN-DS16138
+      host: LOGWHRN-DS16138.snowflakecomputing.com
+
+      user: zakariadev
+      password: MagnusCarlsen0109817er@r
+
+      role: ACCOUNTADMIN
+      warehouse: REAL_ESTATE_WH
+      database: REAL_ESTATE_DB
+      schema: PUBLIC
+
+      threads: 4
+      client_session_keep_alive: false
