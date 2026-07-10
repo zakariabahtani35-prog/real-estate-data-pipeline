@@ -355,6 +355,17 @@ Filtre :
 * État du bien
 
 ---
+# 📸 Captures d’Écran
+
+## 🖥️ Vue Générale du Marché
+
+<img width="1276" height="802" alt="image" src="https://github.com/user-attachments/assets/9a3bed00-de41-4d8e-a999-671fd40aafbc" />
+
+## 🖥️Analyse des Prix
+<img width="1276" height="802" alt="image" src="https://github.com/user-attachments/assets/2ecc9cb7-ae18-406a-a3be-c4a9b0d22d21" />
+
+## Caractéristiques des Biens
+<img width="1274" height="802" alt="image" src="https://github.com/user-attachments/assets/3b532fa0-025c-463e-85d6-636c0d33d91a" />
 
 # Installation du projet
 
