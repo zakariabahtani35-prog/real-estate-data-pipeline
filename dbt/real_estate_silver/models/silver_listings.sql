@@ -270,7 +270,11 @@ cleaned AS (
     SELECT
         b.listing_id,
 
+<<<<<<< HEAD
+        -- ✅ Type de bien
+=======
         --  Type de bien
+>>>>>>> origin/main
         CASE
             WHEN LOWER(TRIM(b.property_type)) IN ('apt', 'apartment') THEN 'apartment'
             WHEN LOWER(TRIM(b.property_type)) IN ('villa ', 'villa')  THEN 'villa'
@@ -281,7 +285,11 @@ cleaned AS (
             ELSE LOWER(TRIM(b.property_type))
         END AS property_type,
 
+<<<<<<< HEAD
+        -- ✅ Pays
+=======
         --  Pays
+>>>>>>> origin/main
         COALESCE(
             NULLIF(TRIM(b.country), ''),
             CASE
@@ -313,14 +321,22 @@ cleaned AS (
 
         TRIM(b.city) AS city,
 
+<<<<<<< HEAD
+        -- ✅ Quartier
+=======
         --  Quartier
+>>>>>>> origin/main
         COALESCE(
             NULLIF(LOWER(TRIM(b.neighborhood)), ''),
             n.neighborhood_mode,
             'unknown'
         ) AS neighborhood,
 
+<<<<<<< HEAD
+        -- ✅ Surface
+=======
         --  Surface
+>>>>>>> origin/main
         COALESCE(
             CASE
                 WHEN b.surface_m2 = 9999 THEN NULL
@@ -342,7 +358,11 @@ cleaned AS (
             ROUND(s.avg_surface, 0)::INTEGER
         ) AS surface_m2,
 
+<<<<<<< HEAD
+        -- ✅ Num_rooms
+=======
         --  Num_rooms
+>>>>>>> origin/main
         COALESCE(
             CASE
                 WHEN LOWER(TRIM(b.property_type)) = 'studio'
@@ -365,7 +385,11 @@ cleaned AS (
 
         COALESCE(b.num_bathrooms, s.median_bathrooms) AS num_bathrooms,
 
+<<<<<<< HEAD
+        -- ✅ Floor → médiane par property_type
+=======
         --  Floor → médiane par property_type
+>>>>>>> origin/main
         COALESCE(
             b.floor,
             fm.median_floor_by_type,
@@ -374,7 +398,11 @@ cleaned AS (
 
         COALESCE(b.year_built, s.median_year_built) AS year_built,
 
+<<<<<<< HEAD
+        -- ✅ Prix
+=======
         --  Prix
+>>>>>>> origin/main
         COALESCE(
             CASE
                 WHEN TRY_CAST(TRIM(REPLACE(b.price::VARCHAR, ' EUR', '')) AS FLOAT) < 1000
@@ -384,7 +412,11 @@ cleaned AS (
             s.avg_price
         ) AS price,
 
+<<<<<<< HEAD
+        -- ✅ Date → médiane comme fallback
+=======
         --  Date → médiane comme fallback
+>>>>>>> origin/main
         COALESCE(
             TRY_TO_DATE(b.listing_date, 'YYYY-MM-DD'),
             TRY_TO_DATE(b.listing_date, 'DD/MM/YYYY'),
@@ -393,7 +425,11 @@ cleaned AS (
             '2022-01-01'::DATE
         ) AS listing_date,
 
+<<<<<<< HEAD
+        -- ✅ Condition
+=======
         --  Condition
+>>>>>>> origin/main
         COALESCE(
             NULLIF(INITCAP(TRIM(b.condition)), ''),
             CASE UPPER(TRIM(b.energy_rating))
@@ -408,14 +444,22 @@ cleaned AS (
             END
         ) AS condition,
 
+<<<<<<< HEAD
+        -- ✅ Chauffage
+=======
         --  Chauffage
+>>>>>>> origin/main
         COALESCE(
             NULLIF(LOWER(TRIM(b.heating_type)), ''),
             h.heating_mode,
             'unknown'
         ) AS heating_type,
 
+<<<<<<< HEAD
+        -- ✅ Parking
+=======
         --  Parking
+>>>>>>> origin/main
         COALESCE(
             CASE
                 WHEN LOWER(TRIM(b.parking)) IN ('yes', '1') THEN 'YES'
@@ -426,7 +470,11 @@ cleaned AS (
             'NO'
         ) AS parking,
 
+<<<<<<< HEAD
+        -- ✅ Classe énergie
+=======
         --  Classe énergie
+>>>>>>> origin/main
         COALESCE(
             CASE WHEN UPPER(TRIM(b.energy_rating)) IN ('A','B','C','D','E','F','G')
                  THEN UPPER(TRIM(b.energy_rating))
@@ -486,10 +534,17 @@ final AS (
         price, listing_date, condition, heating_type, parking,
         energy_rating,
 
+<<<<<<< HEAD
+        -- 🆕 Âge du bien
+        YEAR(CURRENT_DATE()) - year_built AS property_age,
+
+        -- 🆕 Prix au m²
+=======
         --  Âge du bien
         YEAR(CURRENT_DATE()) - year_built AS property_age,
 
         --  Prix au m²
+>>>>>>> origin/main
         CASE
             WHEN surface_m2 > 0 AND price > 0
             THEN ROUND(price / surface_m2, 2)
@@ -500,4 +555,8 @@ final AS (
     WHERE row_num = 1
 )
 
+<<<<<<< HEAD
 SELECT * FROM final
+=======
+SELECT * FROM final
+>>>>>>> origin/main
